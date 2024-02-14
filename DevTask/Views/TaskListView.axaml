@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:DevTask.ViewModels"
+             xmlns:local="clr-namespace:DevTask.local"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="DevTask.Views.TaskListView"
+             x:DataType="vm:TaskListViewModel">
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <UserControl.Resources>
+        <local:TaskTypeToColorConverter x:Key="TaskTypeToColorConverter" />
+    </UserControl.Resources>
+
+    <DockPanel>
+        <DataGrid ItemsSource="{Binding ListItems}">
+            <DataGrid.Styles>
+                <Style Selector="DataGrid">
+                    <Setter Property="Background" Value="Black" />
+                </Style>
+                <Style Selector="TextBlock">
+                    <Setter Property="TextWrapping" Value="WrapWithOverflow" />
+                </Style>
+            </DataGrid.Styles>
+
+            <DataGrid.Columns>
+                <DataGridTemplateColumn Header="Date" SortMemberPath="DateTime">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding DateTime, StringFormat='yyyy-MM-dd'}" Margin="5"
+                                       Foreground="{Binding Type, Converter={StaticResource TaskTypeToColorConverter}}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Tag" SortMemberPath="Type">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Margin="5" Text="{Binding Type}"
+                                       Foreground="{Binding Type, Converter={StaticResource TaskTypeToColorConverter}}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="File" SortMemberPath="FilePath">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Margin="5" Text="{Binding FilePath}"
+                                       Foreground="{Binding Type, Converter={StaticResource TaskTypeToColorConverter}}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+                <DataGridTemplateColumn Header="Line" SortMemberPath="Line">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Line}" Margin="5"
+                                       Foreground="{Binding Type, Converter={StaticResource TaskTypeToColorConverter}}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+
+                <DataGridTemplateColumn Header="Message" Width="*" SortMemberPath="Content">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Content}" Margin="5"
+                                       Foreground="{Binding Type, Converter={StaticResource TaskTypeToColorConverter}}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>

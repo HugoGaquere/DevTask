@@ -1,0 +1,52 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DevTask.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:DevTask.Views"
+        xmlns:materialIcons="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="DevTask.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/avalonia-logo.ico"
+        FontFamily="{StaticResource JetBrainsFont}"
+        Width="950" Height="460"
+        Title="DevTask">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <DockPanel>
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="20,10" Spacing="10">
+            <Button Background="Black" BorderBrush="Wheat" Command="{Binding OpenFolder}"
+                    IsEnabled="{Binding !IsScanLoading}"
+                    Content="{Binding FolderPath}" />
+            <Button Content="{materialIcons:MaterialIconExt Kind=Play}"
+                    IsEnabled="{Binding !IsScanLoading}"
+                    Background="{StaticResource SystemAccentColorDark1}" Command="{Binding RunScanCommand}" />
+            <TextBlock IsVisible="{Binding IsScanLoading}" VerticalAlignment="Center">Scanning project...</TextBlock>
+
+        </StackPanel>
+        <Border Background="{DynamicResource SystemAccentColorDark1}"
+                Padding="5"
+                DockPanel.Dock="Bottom"
+                IsVisible="{Binding ScanResult, 
+                            Converter={x:Static ObjectConverters.IsNotNull}}">
+            <StackPanel Orientation="Horizontal" Spacing="15">
+                <TextBlock VerticalAlignment="Center"
+                           Text="{Binding ScanResult.NumberOfTasks, StringFormat='Total items: {0}'}" />
+                <Label>|</Label>
+                <TextBlock VerticalAlignment="Center"
+                           Text="{Binding ScanResult.NumberFiles, StringFormat='{}{0} Files analyzed'}" />
+                <Label>|</Label>
+                <TextBlock VerticalAlignment="Center"
+                           Text="{Binding ScanResult.ScanTimeMilli, StringFormat='{}{0} ms'}" />
+            </StackPanel>
+        </Border>
+        <views:TaskListView DataContext="{Binding TaskList}" />
+    </DockPanel>
+
+</Window>
