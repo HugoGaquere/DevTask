@@ -4,6 +4,8 @@ DevTask is a multiplatform project management tool designed to help developers k
 It scans your project files for comments tagged with keywords (such as TODO, BUG, or REFACTOR)
 and presents them in a user-friendly interface
 
+![DevTask Screenshot](./devtask_screenshot.png)
+
 ## Features
 - Scans your entire project directory for task comments.
 - Displays tasks in a user-friendly interface.
