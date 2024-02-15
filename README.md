@@ -1,6 +1,6 @@
 # DevTask
 DevTask is a multiplatform project management tool designed to help developers keep track of their tasks within their codebase
-It scans your project files for comments tagged with keywords, and presents them in a user-friendly interface
+It scans your project files for comments tagged with keywords, and presents them in a user-friendly interface.
 
 ![DevTask Screenshot](./devtask_screenshot.png)
 
@@ -36,9 +36,8 @@ These comments should follow the format:
 ```
 
 ## Development
-This project is developed in C# and follows the Model-View-ViewModel (MVVM) architectural pattern.
-It uses the [AvaloniaUI](https://avaloniaui.net/) framework for the user interface and [ReactiveUI](https://www.reactiveui.net/)
-for reactive programming and facilitating the MVVM pattern.
+This project is developed in C#, targeting .NET 8.0, and follows the Model-View-ViewModel (MVVM) architectural pattern.
+It uses the [AvaloniaUI](https://avaloniaui.net/) framework and [ReactiveUI](https://www.reactiveui.net/).
 
 ## Roadmap
 Here are some future improvements and features we're considering:
