@@ -48,7 +48,6 @@ Here are some future improvements and features we're considering:
 - Support for different comment styles.
 - Make the date optional.
 - Add tests.
-- Add UI feedbacks during the scan process.
 - Add multithreading to scan files in parallel for improved performance.
 - Read and process files line by line or chunk by chunk to reduce memory consumption.
 - User customization options, such as custom task tags and comment styles.
