@@ -1,28 +1,26 @@
 # DevTask
-
 DevTask is a multiplatform project management tool designed to help developers keep track of their tasks within their codebase
-It scans your project files for comments tagged with keywords (such as TODO, BUG, or REFACTOR)
-and presents them in a user-friendly interface
+It scans your project files for comments tagged with keywords, and presents them in a user-friendly interface
 
 ![DevTask Screenshot](./devtask_screenshot.png)
 
 ## Features
 - Scans your entire project directory for task comments.
 - Displays tasks in a user-friendly interface.
-- Sort tasks by tage, file, date, etc.
+- Sort tasks by tag, file, date, etc.
 - Provides a summary of the number of tasks, files scanned, and scan time.
-- Only support comments starting with '//' for now.
+- Only support comments starting with `// keyword:` for now.
 - [SOON] Supports different comment styles.
 
 # How it Works
 DevTask uses regular expressions to scan your project files for comments tagged with
-TODO, BUG, or REFACTOR (not case sensitive).
+`TODO`, `REFACTOR` or `BUG` (not case sensitive).
 
 For now the date is mandatory and should be in the format DD / MM / YYYY.
 
 These comments should follow the format:
 
-```csharp
+```
 // Todo: The task description
 // Date: DD / MM / YYYY
 
@@ -44,7 +42,6 @@ for reactive programming and facilitating the MVVM pattern.
 
 ## Roadmap
 Here are some future improvements and features we're considering:
-
 - Support for different comment styles.
 - Make the date optional.
 - Add tests.
