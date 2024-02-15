@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using DynamicData;
 
@@ -18,8 +20,6 @@ public class ScanProgressEventArgs(int totalFiles, int filesScanned) : EventArgs
 public class ScanService
 {
     public event EventHandler<ScanProgressEventArgs> ScanProgressChanged;
-
-    private readonly Regex _regex;
 
     private static readonly HashSet<string> AllowedFileExtensions =
     [
@@ -40,16 +40,13 @@ public class ScanService
         ".dart" // Dart
     ];
 
-    public ScanService()
-    {
-        // TODO: The regex pattern is not flexible enough to handle different comment styles
-        // Date: 13 / 02 / 2024
-        // TODO: The regex should be enough flexible to match when the date is not present
-        // Date: 14 / 02 / 2024
-        const string pattern =
-            @"\/\/\s*((?i)todo|refactor|bug)\s*:\s*([\s\S]*?)\n\s*\/\/\s*Date\s*:\s*(\d{2}\s*\/\s*\d{2}\s*\/\s*\d{4})";
-        _regex = new Regex(pattern);
-    }
+    // TODO: The regex pattern is not flexible enough to handle different comment styles
+    // Date: 13 / 02 / 2024
+    // TODO: The regex should be enough flexible to match when the date is not present
+    // Date: 14 / 02 / 2024
+    private static readonly string REGEX_PATTERN =
+        @"\/\/\s*((?i)todo|refactor|bug)\s*:\s*([\s\S]*?)\n\s*\/\/\s*Date\s*:\s*(\d{2}\s*\/\s*\d{2}\s*\/\s*\d{4})";
+
 
     public async Task<ScanResult> ScanProjectAsync(string projectPath)
     {
@@ -57,28 +54,38 @@ public class ScanService
         return scanResult;
     }
 
-    private ScanResult ScanFolder(string folderPath)
+    private async Task<ScanResult> ScanFolder(string folderPath)
     {
+        // Refactor: This method is too long and should be split into smaller methods
+        // Date: 15 / 02 / 2024
+        
         if (!Path.Exists(folderPath))
         {
             throw new DirectoryNotFoundException($"The folder {folderPath} does not exist.");
         }
-
-        IList<TaskItem> folderTaskItems = [];
-
-        // Todo: Use multithreading to scan files in parallel
-        // Date: 14 / 02 / 2024
-
+        
         var stopwatch = Stopwatch.StartNew();
 
+        var folderTaskItems = new ConcurrentBag<TaskItem>();
         var files = Directory.GetFiles(folderPath, searchPattern: "*", searchOption: SearchOption.AllDirectories);
         var allowedFiles = files.Where(IsFileExtensionAllowed).ToArray();
-        for (var i = 0; i < allowedFiles.Length; i++)
+
+        var counter = 0;
+        var tasks = allowedFiles.Select(filePath =>
         {
-            ScanProgressChanged?.Invoke(this, new ScanProgressEventArgs(allowedFiles.Length, i + 1));
-            var fileTaskItems = ScanFile(folderPath, allowedFiles[i]);
-            folderTaskItems.AddRange(fileTaskItems);
-        }
+            return Task.Run(() =>
+            {
+                var currentCount = Interlocked.Increment(ref counter);
+                ScanProgressChanged?.Invoke(this, new ScanProgressEventArgs(allowedFiles.Length, currentCount));
+                var fileTaskItems = ScanFile(folderPath, filePath);
+                foreach (var item in fileTaskItems)
+                {
+                    folderTaskItems.Add(item);
+                }
+            });
+        });
+        
+        await Task.WhenAll(tasks);
 
         stopwatch.Stop();
         var duration = stopwatch.Elapsed;
@@ -94,13 +101,15 @@ public class ScanService
         // or chunk by chunk.
         // Date: 13 / 02 / 2024
 
+        var regex = new Regex(REGEX_PATTERN);
+
         var relativeFilePath = filePath.Replace(folderPath, "").TrimStart('/', '\\');
 
         IList<TaskItem> results = new List<TaskItem>();
         using (var reader = File.OpenText(filePath))
         {
             var fileContent = reader.ReadToEnd();
-            var matchCollection = _regex.Matches(fileContent);
+            var matchCollection = regex.Matches(fileContent);
             foreach (Match match in matchCollection)
             {
                 var taskItem = CreateTaskItem(match, fileContent, relativeFilePath);
