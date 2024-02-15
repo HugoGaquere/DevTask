@@ -9,9 +9,6 @@ using DynamicData;
 
 namespace DevTask.Models;
 
-// Todo: The scan needs to send a progress report to the UI
-// Date: 14 / 02 / 2024
-
 public class ScanProgressEventArgs(int totalFiles, int filesScanned) : EventArgs
 {
     public int TotalFiles { get; } = totalFiles;
@@ -23,22 +20,24 @@ public class ScanService
     public event EventHandler<ScanProgressEventArgs> ScanProgressChanged;
 
     private readonly Regex _regex;
-    private static readonly HashSet<string> AllowedFileExtensions = [
-        ".cs",   // C#
-        ".c",     // C
-        ".cpp",  // C++
-        ".h",    // C++ Header
-        ".js",   // JavaScript
-        ".ts",   // TypeScript
+
+    private static readonly HashSet<string> AllowedFileExtensions =
+    [
+        ".cs", // C#
+        ".c", // C
+        ".cpp", // C++
+        ".h", // C++ Header
+        ".js", // JavaScript
+        ".ts", // TypeScript
         ".java", // Java
-        ".kt",   // Kotlin
-        ".go",   // Go
-        ".rs",   // Rust
-        ".php",  // PHP
-        ".swift",// Swift
-        ".scala",// Scala
-        ".groovy",// Groovy
-        ".dart"  // Dart
+        ".kt", // Kotlin
+        ".go", // Go
+        ".rs", // Rust
+        ".php", // PHP
+        ".swift", // Swift
+        ".scala", // Scala
+        ".groovy", // Groovy
+        ".dart" // Dart
     ];
 
     public ScanService()
@@ -60,8 +59,10 @@ public class ScanService
 
     private ScanResult ScanFolder(string folderPath)
     {
-        // Todo: Check folderPath validity
-        // Date: 12 / 02 / 2024
+        if (!Path.Exists(folderPath))
+        {
+            throw new DirectoryNotFoundException($"The folder {folderPath} does not exist.");
+        }
 
         IList<TaskItem> folderTaskItems = [];
 
@@ -69,7 +70,7 @@ public class ScanService
         // Date: 14 / 02 / 2024
 
         var stopwatch = Stopwatch.StartNew();
-        
+
         var files = Directory.GetFiles(folderPath, searchPattern: "*", searchOption: SearchOption.AllDirectories);
         var allowedFiles = files.Where(IsFileExtensionAllowed).ToArray();
         for (var i = 0; i < allowedFiles.Length; i++)
@@ -85,11 +86,8 @@ public class ScanService
         return new ScanResult(folderTaskItems, allowedFiles.Length, duration.Milliseconds);
     }
 
-    private IList<TaskItem> ScanFile(string folderPath, string filePath)
+    private IEnumerable<TaskItem> ScanFile(string folderPath, string filePath)
     {
-        // Refactor: make the return type an IEnumerable
-        // Date: 14 / 02 / 2024
-
         // TODO: There is a high memory consumption due to the reader.ReadToEnd() method,
         // which loads the entire file into memory.
         // A memory-efficient approach would be to read and process the file line by line
@@ -129,11 +127,8 @@ public class ScanService
 
     private static TaskType ParseTaskType(Match match)
     {
-        // TODO: check the enum parsing result
-        // Date: 13 / 02 / 2024
-
         var taskTypeString = match.Groups[1].ToString();
-        Enum.TryParse(taskTypeString, out TaskType taskType);
+        var taskType = Enum.Parse<TaskType>(taskTypeString, ignoreCase: true);
         return taskType;
     }
 
@@ -162,7 +157,7 @@ public class ScanService
         new TaskItem(TaskType.Todo, "Check performances", "src/mandelbrot.py", 12, new DateTime(2024, 11, 12)),
         new TaskItem(TaskType.Refactor, "Refactor method", "src/matrix.py", 47, new DateTime(2023, 10, 25)),
     };
-    
+
     private bool IsFileExtensionAllowed(string filePath)
     {
         var extension = Path.GetExtension(filePath);
