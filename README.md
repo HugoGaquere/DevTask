@@ -12,7 +12,30 @@ and presents them in a user-friendly interface
 - Sort tasks by tage, file, date, etc.
 - Provides a summary of the number of tasks, files scanned, and scan time.
 - Only support comments starting with '//' for now.
-- [SOON] Supports different comment styles and file types.
+- [SOON] Supports different comment styles.
+
+# How it Works
+DevTask uses regular expressions to scan your project files for comments tagged with
+TODO, BUG, or REFACTOR (not case sensitive).
+
+For now the date is mandatory and should be in the format DD / MM / YYYY.
+
+These comments should follow the format:
+
+```csharp
+// Todo: The task description
+// Date: DD / MM / YYYY
+
+// Todo: The task description
+// can be multiline
+// Date: DD / MM / YYYY
+
+// Refactor: The refactor description
+// Date: DD / MM / YYYY
+
+// Bug: The bug description
+// Date: DD / MM / YYYY
+```
 
 ## Development
 This project is developed in C# and follows the Model-View-ViewModel (MVVM) architectural pattern.
@@ -22,7 +45,8 @@ for reactive programming and facilitating the MVVM pattern.
 ## Roadmap
 Here are some future improvements and features we're considering:
 
-- Support for different comment styles and file types.
+- Support for different comment styles.
+- Make the date optional.
 - Add tests.
 - Add UI feedbacks during the scan process.
 - Add multithreading to scan files in parallel for improved performance.
