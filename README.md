@@ -9,7 +9,7 @@ and presents them in a user-friendly interface
 ## Features
 - Scans your entire project directory for task comments.
 - Displays tasks in a user-friendly interface.
-- Sort tasks by type, file and date.
+- Sort tasks by tage, file, date, etc.
 - Provides a summary of the number of tasks, files scanned, and scan time.
 - Only support comments starting with '//' for now.
 - [SOON] Supports different comment styles and file types.
