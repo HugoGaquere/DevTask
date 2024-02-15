@@ -9,24 +9,27 @@ using DynamicData;
 
 namespace DevTask.Models;
 
+// Todo: The scan needs to send a progress report to the UI
+// Date: 14 / 02 / 2024
+
 public class ScanService
 {
-    private Regex _regex;
+    private readonly Regex _regex;
 
     public ScanService()
     {
         // TODO: The regex pattern is not flexible enough to handle different comment styles
-        // Date: 13 / 01 / 2024
+        // Date: 13 / 02 / 2024
         // TODO: The regex should be enough flexible to match when the date is not present
-        // Date: 14 / 01 / 2024
-        string pattern =
+        // Date: 14 / 02 / 2024
+        const string pattern =
             @"\/\/\s*((?i)todo|refactor|bug)\s*:\s*([\s\S]*?)\n\s*\/\/\s*Date\s*:\s*(\d{2}\s*\/\s*\d{2}\s*\/\s*\d{4})";
         _regex = new Regex(pattern);
     }
 
     public ScanResult GetMockScanResult() => new ScanResult(GetMockItems(), 4, 27);
 
-    public IEnumerable<TaskItem> GetMockItems() => new[]
+    private static IEnumerable<TaskItem> GetMockItems() => new[]
     {
         new TaskItem(TaskType.Todo, "add feature", "src/main.py", 5, new DateTime(2024, 11, 10)),
         new TaskItem(TaskType.Todo, "add feature", "src/main.py", 7, new DateTime(2024, 11, 11)),
@@ -44,13 +47,13 @@ public class ScanService
     private ScanResult ScanFolder(string folderPath)
     {
         // Todo: Check folderPath validity
-        // Date: 12 / 01 / 2024
+        // Date: 12 / 02 / 2024
 
         IList<TaskItem> folderTaskItems = [];
 
         // Todo: Use multithreading to scan files in parallel
-        // Date: 14 / 01 / 2024
-        
+        // Date: 14 / 02 / 2024
+
         var stopwatch = Stopwatch.StartNew();
         var files = Directory.GetFiles(folderPath, searchPattern: "*", searchOption: SearchOption.AllDirectories);
         foreach (var filePath in files)
@@ -68,11 +71,14 @@ public class ScanService
 
     private IList<TaskItem> ScanFile(string folderPath, string filePath)
     {
+        // Refactor: make the return type an IEnumerable
+        // Date: 14 / 02 / 2024
+        
         // TODO: There is a high memory consumption due to the reader.ReadToEnd() method,
         // which loads the entire file into memory.
         // A memory-efficient approach would be to read and process the file line by line
         // or chunk by chunk.
-        // Date: 13 / 01 / 2024
+        // Date: 13 / 02 / 2024
 
         var relativeFilePath = filePath.Replace(folderPath, "").TrimStart('/', '\\');
 
@@ -108,7 +114,7 @@ public class ScanService
     private TaskType ParseTaskType(Match match)
     {
         // TODO: check the enum parsing result
-        // Date: 13 / 01 / 2024
+        // Date: 13 / 02 / 2024
 
         var taskTypeString = match.Groups[1].ToString();
         Enum.TryParse(taskTypeString, out TaskType taskType);
