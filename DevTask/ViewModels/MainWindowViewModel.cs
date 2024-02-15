@@ -1,7 +1,5 @@
 ﻿using System;
-using System.IO;
 using System.Reactive;
-using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -13,59 +11,76 @@ namespace DevTask.ViewModels;
 
 public class MainWindowViewModel : ViewModelBase
 {
-
+    private readonly ScanService _scanService;
     private ScanResult? _scanResult;
-
+    private TaskListViewModel? _taskListViewModel;
+    private string? _folderPath;
+    private bool _isScanLoading;
+    private int _totalFiles;
+    private int _scannedFiles;
+    
     public ScanResult? ScanResult
     {
         get => _scanResult;
         set => this.RaiseAndSetIfChanged(ref _scanResult, value);
     }
-
-
-    private TaskListViewModel _taskListViewModel;
-
-    public TaskListViewModel TaskList
+    
+    public TaskListViewModel? TaskList
     {
         get => _taskListViewModel;
         set => this.RaiseAndSetIfChanged(ref _taskListViewModel, value);
     }
 
-    private bool _isScanLoading = false;
 
     public bool IsScanLoading
     {
         get => _isScanLoading;
         set => this.RaiseAndSetIfChanged(ref _isScanLoading, value);
     }
-
-    public ReactiveCommand<Unit, Unit> RunScanCommand { get; }
-
-    private string? _folderPath;
-
-    public String FolderPath
+    
+    public string FolderPath
     {
         get => _folderPath ?? "Select project folder";
         set => this.RaiseAndSetIfChanged(ref _folderPath, value);
     }
-
+    
+    public int TotalFiles
+    {
+        get => _totalFiles;
+        set => this.RaiseAndSetIfChanged(ref _totalFiles, value);
+    }
+    
+    public int ScannedFiles
+    {
+        get => _scannedFiles;
+        set => this.RaiseAndSetIfChanged(ref _scannedFiles, value);
+    }
+    
+    public ReactiveCommand<Unit, Unit> RunScanCommand { get; }
+    
     public MainWindowViewModel()
     {
-        IObservable<bool> isFolderPathValid = this.WhenAnyValue(
+        _scanService = new ScanService();
+        _scanService.ScanProgressChanged += ScanService_ScanProgressChanged;
+        
+        var isFolderPathValid = this.WhenAnyValue(
             x => x.FolderPath,
             x => !string.IsNullOrWhiteSpace(x) && (x.Contains('/') || x.Contains('\\'))
         );
-
         RunScanCommand = ReactiveCommand.Create(() => { RunScan(); }, isFolderPathValid);
+    }
+    
+    private void ScanService_ScanProgressChanged(object sender, ScanProgressEventArgs e)
+    {
+        TotalFiles = e.TotalFiles;
+        ScannedFiles = e.FilesScanned;
     }
 
     public async void RunScan()
     {
         IsScanLoading = true;
         
-        var service = new ScanService();
-        
-        ScanResult = await service.ScanProjectAsync(FolderPath);
+        ScanResult = await _scanService.ScanProjectAsync(FolderPath);
         TaskList = new TaskListViewModel(ScanResult.TaskItems);
         
         IsScanLoading = false;

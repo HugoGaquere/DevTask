@@ -12,8 +12,16 @@ namespace DevTask.Models;
 // Todo: The scan needs to send a progress report to the UI
 // Date: 14 / 02 / 2024
 
+public class ScanProgressEventArgs(int totalFiles, int filesScanned) : EventArgs
+{
+    public int TotalFiles { get; } = totalFiles;
+    public int FilesScanned { get; } = filesScanned;
+}
+
 public class ScanService
 {
+    public event EventHandler<ScanProgressEventArgs> ScanProgressChanged; 
+    
     private readonly Regex _regex;
 
     public ScanService()
@@ -26,17 +34,6 @@ public class ScanService
             @"\/\/\s*((?i)todo|refactor|bug)\s*:\s*([\s\S]*?)\n\s*\/\/\s*Date\s*:\s*(\d{2}\s*\/\s*\d{2}\s*\/\s*\d{4})";
         _regex = new Regex(pattern);
     }
-
-    public ScanResult GetMockScanResult() => new ScanResult(GetMockItems(), 4, 27);
-
-    private static IEnumerable<TaskItem> GetMockItems() => new[]
-    {
-        new TaskItem(TaskType.Todo, "add feature", "src/main.py", 5, new DateTime(2024, 11, 10)),
-        new TaskItem(TaskType.Todo, "add feature", "src/main.py", 7, new DateTime(2024, 11, 11)),
-        new TaskItem(TaskType.Bug, "BufferOverflow", "src/compute.py", 50, new DateTime(2024, 11, 12)),
-        new TaskItem(TaskType.Todo, "Check performances", "src/mandelbrot.py", 12, new DateTime(2024, 11, 12)),
-        new TaskItem(TaskType.Refactor, "Refactor method", "src/matrix.py", 47, new DateTime(2023, 10, 25)),
-    };
 
     public async Task<ScanResult> ScanProjectAsync(string projectPath)
     {
@@ -56,16 +53,17 @@ public class ScanService
 
         var stopwatch = Stopwatch.StartNew();
         var files = Directory.GetFiles(folderPath, searchPattern: "*", searchOption: SearchOption.AllDirectories);
-        foreach (var filePath in files)
+        for(var i = 0; i < files.Length; i++)
         {
-            var fileTaskItems = ScanFile(folderPath, filePath);
+            ScanProgressChanged?.Invoke(this, new ScanProgressEventArgs(files.Length, i+1));
+            var fileTaskItems = ScanFile(folderPath, files[i]);
             folderTaskItems.AddRange(fileTaskItems);
         }
 
         stopwatch.Stop();
-        TimeSpan duration = stopwatch.Elapsed;
+        var duration = stopwatch.Elapsed;
 
-        ScanResult scanResult = new ScanResult(folderTaskItems, files.Length, duration.Milliseconds);
+        var scanResult = new ScanResult(folderTaskItems, files.Length, duration.Milliseconds);
         return scanResult;
     }
 
@@ -135,4 +133,15 @@ public class ScanService
         var dateArray = date.Split('/').Select(s => int.Parse(s.Trim())).ToList();
         return new DateTime(dateArray[2], dateArray[1], dateArray[0]);
     }
+    
+    public ScanResult GetMockScanResult() => new ScanResult(GetMockItems(), 4, 27);
+
+    private static IEnumerable<TaskItem> GetMockItems() => new[]
+    {
+        new TaskItem(TaskType.Todo, "add feature", "src/main.py", 5, new DateTime(2024, 11, 10)),
+        new TaskItem(TaskType.Todo, "add feature", "src/main.py", 7, new DateTime(2024, 11, 11)),
+        new TaskItem(TaskType.Bug, "BufferOverflow", "src/compute.py", 50, new DateTime(2024, 11, 12)),
+        new TaskItem(TaskType.Todo, "Check performances", "src/mandelbrot.py", 12, new DateTime(2024, 11, 12)),
+        new TaskItem(TaskType.Refactor, "Refactor method", "src/matrix.py", 47, new DateTime(2023, 10, 25)),
+    };
 }

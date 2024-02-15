@@ -27,7 +27,15 @@
             <Button Content="{materialIcons:MaterialIconExt Kind=Play}"
                     IsEnabled="{Binding !IsScanLoading}"
                     Background="{StaticResource SystemAccentColorDark1}" Command="{Binding RunScanCommand}" />
-            <TextBlock IsVisible="{Binding IsScanLoading}" VerticalAlignment="Center">Scanning project...</TextBlock>
+            <ProgressBar IsVisible="{Binding IsScanLoading}" Minimum="0" Maximum="{Binding TotalFiles}" Value="{Binding ScannedFiles}" />
+            <TextBlock VerticalAlignment="Center" IsVisible="{Binding IsScanLoading}">
+                <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{1} / {0} files">
+                        <Binding Path="TotalFiles" />
+                        <Binding Path="ScannedFiles" />
+                    </MultiBinding>
+                </TextBlock.Text>
+            </TextBlock>
 
         </StackPanel>
         <Border Background="{DynamicResource SystemAccentColorDark1}"
