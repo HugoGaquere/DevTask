@@ -20,9 +20,26 @@ public class ScanProgressEventArgs(int totalFiles, int filesScanned) : EventArgs
 
 public class ScanService
 {
-    public event EventHandler<ScanProgressEventArgs> ScanProgressChanged; 
-    
+    public event EventHandler<ScanProgressEventArgs> ScanProgressChanged;
+
     private readonly Regex _regex;
+    private static readonly HashSet<string> AllowedFileExtensions = [
+        ".cs",   // C#
+        ".c",     // C
+        ".cpp",  // C++
+        ".h",    // C++ Header
+        ".js",   // JavaScript
+        ".ts",   // TypeScript
+        ".java", // Java
+        ".kt",   // Kotlin
+        ".go",   // Go
+        ".rs",   // Rust
+        ".php",  // PHP
+        ".swift",// Swift
+        ".scala",// Scala
+        ".groovy",// Groovy
+        ".dart"  // Dart
+    ];
 
     public ScanService()
     {
@@ -52,26 +69,27 @@ public class ScanService
         // Date: 14 / 02 / 2024
 
         var stopwatch = Stopwatch.StartNew();
+        
         var files = Directory.GetFiles(folderPath, searchPattern: "*", searchOption: SearchOption.AllDirectories);
-        for(var i = 0; i < files.Length; i++)
+        var allowedFiles = files.Where(IsFileExtensionAllowed).ToArray();
+        for (var i = 0; i < allowedFiles.Length; i++)
         {
-            ScanProgressChanged?.Invoke(this, new ScanProgressEventArgs(files.Length, i+1));
-            var fileTaskItems = ScanFile(folderPath, files[i]);
+            ScanProgressChanged?.Invoke(this, new ScanProgressEventArgs(allowedFiles.Length, i + 1));
+            var fileTaskItems = ScanFile(folderPath, allowedFiles[i]);
             folderTaskItems.AddRange(fileTaskItems);
         }
 
         stopwatch.Stop();
         var duration = stopwatch.Elapsed;
 
-        var scanResult = new ScanResult(folderTaskItems, files.Length, duration.Milliseconds);
-        return scanResult;
+        return new ScanResult(folderTaskItems, allowedFiles.Length, duration.Milliseconds);
     }
 
     private IList<TaskItem> ScanFile(string folderPath, string filePath)
     {
         // Refactor: make the return type an IEnumerable
         // Date: 14 / 02 / 2024
-        
+
         // TODO: There is a high memory consumption due to the reader.ReadToEnd() method,
         // which loads the entire file into memory.
         // A memory-efficient approach would be to read and process the file line by line
@@ -95,7 +113,7 @@ public class ScanService
         return results;
     }
 
-    private TaskItem CreateTaskItem(Match match, string fileContent, string relativeFilePath)
+    private static TaskItem CreateTaskItem(Match match, string fileContent, string relativeFilePath)
     {
         var lineNumber = ParseTaskLineNumber(match, fileContent);
         var taskType = ParseTaskType(match);
@@ -104,12 +122,12 @@ public class ScanService
         return new TaskItem(taskType, content, relativeFilePath, lineNumber, dateTime);
     }
 
-    private int ParseTaskLineNumber(Match match, string fileContent)
+    private static int ParseTaskLineNumber(Match match, string fileContent)
     {
         return fileContent[..match.Index].Count(c => c == '\n') + 1;
     }
 
-    private TaskType ParseTaskType(Match match)
+    private static TaskType ParseTaskType(Match match)
     {
         // TODO: check the enum parsing result
         // Date: 13 / 02 / 2024
@@ -119,7 +137,7 @@ public class ScanService
         return taskType;
     }
 
-    private string ParseTaskContent(Match match)
+    private static string ParseTaskContent(Match match)
     {
         var content = match.Groups[2].ToString().Trim();
         // Remove the leading '//' and extra spaces of multiline comments 
@@ -127,13 +145,13 @@ public class ScanService
         return cleanContent;
     }
 
-    private DateTime ParseTaskDate(Match match)
+    private static DateTime ParseTaskDate(Match match)
     {
         var date = match.Groups[3].ToString();
         var dateArray = date.Split('/').Select(s => int.Parse(s.Trim())).ToList();
         return new DateTime(dateArray[2], dateArray[1], dateArray[0]);
     }
-    
+
     public ScanResult GetMockScanResult() => new ScanResult(GetMockItems(), 4, 27);
 
     private static IEnumerable<TaskItem> GetMockItems() => new[]
@@ -144,4 +162,10 @@ public class ScanService
         new TaskItem(TaskType.Todo, "Check performances", "src/mandelbrot.py", 12, new DateTime(2024, 11, 12)),
         new TaskItem(TaskType.Refactor, "Refactor method", "src/matrix.py", 47, new DateTime(2023, 10, 25)),
     };
+    
+    private bool IsFileExtensionAllowed(string filePath)
+    {
+        var extension = Path.GetExtension(filePath);
+        return AllowedFileExtensions.Contains(extension);
+    }
 }
