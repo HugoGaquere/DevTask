@@ -37,14 +37,11 @@ jobs:
     needs: [build-linux-installer]
     
     steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v2
-
       - name: Download Linux-Installer Artifact
         uses: actions/download-artifact@v2
         with:
           name: linux-installer-artifact
-          path: ./devtask_linux_x64.sh
+          path: ./
 
       - name: Create Release
         id: create_release
