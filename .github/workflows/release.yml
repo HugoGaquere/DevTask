@@ -1,4 +1,4 @@
-name: Build and Release
+name: Release
 
 on:
   push:
@@ -6,25 +6,17 @@ on:
       - main
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+        
+      - name: Download Linux-Installer Artifact
+        uses: actions/download-artifact@v2
         with:
-          dotnet-version: '8.0'
-
-      - name: Install makeself
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y makeself
-
-      - name: Run build script
-        run: bash ./scripts/build.sh
+          name: linux-installer-artifact
 
       - name: Create Release
         id: create_release
@@ -37,13 +29,13 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Upload Release Asset
+      - name: Upload Linux-Installer Release Asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: devtask.sh
-          asset_name: devtask.sh
+          asset_path: ./linux-installer-artifact/devtask.sh
+          asset_name: devtask_linux_x64.sh
           asset_content_type: application/x-shellscript
