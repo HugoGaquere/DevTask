@@ -31,3 +31,9 @@ jobs:
         with:
           name: linux-installer-artifact
           path: ./devtask.sh
+          
+  testJob:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - run: echo "TEST JOB"
