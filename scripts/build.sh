@@ -7,4 +7,4 @@ dotnet publish --configuration Release --runtime linux-x64 --self-contained true
 cp ./scripts/install.sh ./publish
 
 # Create the installer
-makeself ./publish devtask.sh "DevTask installer" ./install.sh
+makeself ./publish devtask_linux_x64.sh "DevTask installer" ./install.sh
