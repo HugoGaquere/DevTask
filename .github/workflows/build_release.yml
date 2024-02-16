@@ -1,15 +1,41 @@
-name: Release
+name: Build-Linux-Installer
 
 on:
-  workflow_run:
-    workflows: [ Build-Linux-Installer ]
-    types: [ completed ]
+  push:
+    branches:
+      - main
 
 jobs:
+  build-linux-installer:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '8.x'
+
+      - name: Install makeself
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y makeself
+
+      - name: Run build script
+        run: bash ./scripts/build.sh
+        
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-installer-artifact
+          path: ./devtask.sh
+          
   release:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-
+    needs: [build-linux-installer]
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
