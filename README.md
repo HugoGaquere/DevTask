@@ -35,6 +35,14 @@ These comments should follow the format:
 // Date: DD / MM / YYYY
 ```
 
+## Installation
+### Linux
+Todo
+### Windows
+Coming soon.
+### MacOS
+Coming soon.
+
 ## Development
 This project is developed in C#, targeting .NET 8.0, and follows the Model-View-ViewModel (MVVM) architectural pattern.
 It uses the [AvaloniaUI](https://avaloniaui.net/) framework and [ReactiveUI](https://www.reactiveui.net/).

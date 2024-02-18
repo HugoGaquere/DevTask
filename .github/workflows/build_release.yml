@@ -1,4 +1,4 @@
-name: Build-Linux-Installer
+name: Build-Release
 
 on:
   push:
