@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Controls.Documents;
 using DynamicData;
 
 namespace DevTask.Models;
@@ -44,8 +46,12 @@ public class ScanService
     // Date: 13 / 02 / 2024
     // TODO: The regex should be enough flexible to match when the date is not present
     // Date: 14 / 02 / 2024
-    private static readonly string REGEX_PATTERN =
-        @"\/\/\s*((?i)todo|refactor|bug)\s*:\s*([\s\S]*?)\n\s*\/\/\s*Date\s*:\s*(\d{2}\s*\/\s*\d{2}\s*\/\s*\d{4})";
+
+    private static readonly string ContentPattern = @"\/\/\s*(?:(?i)todo|refactor|bug)?\s*:?\s*(.*)";
+
+    private static readonly string KEYWORDS_PATTERN = @"\/\/\s*((?i)todo|refactor|bug)\s*:";
+
+    private static readonly string DATE_PATTERN = @"\/\/\s*(?i)date\s*:?\s*(\d{2}\s*\/\s*\d{2}\s*\/\s*\d{4})";
 
 
     public async Task<ScanResult> ScanProjectAsync(string projectPath)
@@ -58,12 +64,12 @@ public class ScanService
     {
         // Refactor: This method is too long and should be split into smaller methods
         // Date: 15 / 02 / 2024
-        
+
         if (!Path.Exists(folderPath))
         {
             throw new DirectoryNotFoundException($"The folder {folderPath} does not exist.");
         }
-        
+
         var stopwatch = Stopwatch.StartNew();
 
         var folderTaskItems = new ConcurrentBag<TaskItem>();
@@ -84,7 +90,7 @@ public class ScanService
                 }
             });
         });
-        
+
         await Task.WhenAll(tasks);
 
         stopwatch.Stop();
@@ -93,65 +99,86 @@ public class ScanService
         return new ScanResult(folderTaskItems, allowedFiles.Length, duration.Milliseconds);
     }
 
-    private IEnumerable<TaskItem> ScanFile(string folderPath, string filePath)
+    private static IEnumerable<TaskItem> ScanFile(string folderPath, string filePath)
     {
         // TODO: There is a high memory consumption due to the reader.ReadToEnd() method,
         // which loads the entire file into memory.
         // A memory-efficient approach would be to read and process the file line by line
         // or chunk by chunk.
-        // Date: 13 / 02 / 2024e" 
+        // Date: 13 / 02 / 2024" 
 
-        var regex = new Regex(REGEX_PATTERN);
+        var keywordsRegex = new Regex(KEYWORDS_PATTERN);
+        var contentRegex = new Regex(ContentPattern);
+        var dateRegex = new Regex(DATE_PATTERN);
 
         var relativeFilePath = filePath.Replace(folderPath, "").TrimStart('/', '\\');
+        var results = new List<TaskItem>();
 
-        IList<TaskItem> results = new List<TaskItem>();
-        using (var reader = File.OpenText(filePath))
+        using var reader = File.OpenText(filePath);
+        TaskItemBuilder? taskItemBuilder = null;
+        var lineCounter = 0;
+        while (reader.ReadLine() is { } line)
         {
-            var fileContent = reader.ReadToEnd();
-            var matchCollection = regex.Matches(fileContent);
-            foreach (Match match in matchCollection)
+            lineCounter++;
+            var keywordsMatch = keywordsRegex.Match(line);
+            if (keywordsMatch.Success)
             {
-                var taskItem = CreateTaskItem(match, fileContent, relativeFilePath);
-                results.Add(taskItem);
+                // Keyword found, start a new comment
+                taskItemBuilder = new TaskItemBuilder();
+                taskItemBuilder.SetType(ParseTaskType(keywordsMatch))
+                    .SetFilePath(relativeFilePath)
+                    .SetLine(lineCounter);
+
+                // Parse the content on the same line of the keyword
+                var contentMatch = contentRegex.Match(line);
+                if (contentMatch.Success) taskItemBuilder.AddContent(ParseTaskContent(contentMatch));
+            }
+            else if (taskItemBuilder != null)
+            {
+                // We are inside a comment, append the line to the comment builder
+
+                // Check if it's date 
+                var dateMatch = dateRegex.Match(line);
+                if (dateMatch.Success)
+                {
+                    taskItemBuilder.SetTime(ParseTaskDate(dateMatch));
+                    // Build the TaskItem and add it to the results
+                    results.Add(taskItemBuilder.Build());
+                    // Reset the TaskItemBuilder for next comments
+                    taskItemBuilder = null;
+                    continue;
+                }
+
+                // Since the line isn't a date, this must be a content line
+                // If not, the comment format is wrong and not supported, abort it.
+                var contentMatch = contentRegex.Match(line);
+                if (!contentMatch.Success)
+                {
+                    // Reset the TaskItemBuilder for next comments
+                    taskItemBuilder = null;
+                    continue;
+                }
+                taskItemBuilder.AddContent(ParseTaskContent(contentMatch));
             }
         }
 
         return results;
     }
 
-    private static TaskItem CreateTaskItem(Match match, string fileContent, string relativeFilePath)
-    {
-        var lineNumber = ParseTaskLineNumber(match, fileContent);
-        var taskType = ParseTaskType(match);
-        var content = ParseTaskContent(match);
-        var dateTime = ParseTaskDate(match);
-        return new TaskItem(taskType, content, relativeFilePath, lineNumber, dateTime);
-    }
-
-    private static int ParseTaskLineNumber(Match match, string fileContent)
-    {
-        return fileContent[..match.Index].Count(c => c == '\n') + 1;
-    }
-
     private static TaskType ParseTaskType(Match match)
     {
         var taskTypeString = match.Groups[1].ToString();
-        var taskType = Enum.Parse<TaskType>(taskTypeString, ignoreCase: true);
-        return taskType;
+        return Enum.Parse<TaskType>(taskTypeString, ignoreCase: true);
     }
 
     private static string ParseTaskContent(Match match)
     {
-        var content = match.Groups[2].ToString().Trim();
-        // Remove the leading '//' and extra spaces of multiline comments 
-        var cleanContent = Regex.Replace(content, @"\s*\/\/\s", "\n");
-        return cleanContent;
+        return match.Groups[1].ToString().Trim();
     }
 
     private static DateTime ParseTaskDate(Match match)
     {
-        var date = match.Groups[3].ToString();
+        var date = match.Groups[1].ToString();
         var dateArray = date.Split('/').Select(s => int.Parse(s.Trim())).ToList();
         return new DateTime(dateArray[2], dateArray[1], dateArray[0]);
     }
