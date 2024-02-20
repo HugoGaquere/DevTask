@@ -44,15 +44,9 @@ public class ScanService
 
     // TODO: The regex pattern is not flexible enough to handle different comment styles
     // Date: 13 / 02 / 2024
-    // TODO: The regex should be enough flexible to match when the date is not present
-    // Date: 14 / 02 / 2024
-
-    private static readonly string ContentPattern = @"\/\/\s*(?:(?i)todo|refactor|bug)?\s*:?\s*(.*)";
-
-    private static readonly string KEYWORDS_PATTERN = @"\/\/\s*((?i)todo|refactor|bug)\s*:";
-
-    private static readonly string DATE_PATTERN = @"\/\/\s*(?i)date\s*:?\s*(\d{2}\s*\/\s*\d{2}\s*\/\s*\d{4})";
-
+    private const string ContentPattern = @"\/\/\s*(?:(?i)todo|refactor|bug)?\s*:?\s*(.*)";
+    private const string KeywordsPattern = @"\/\/\s*((?i)todo|refactor|bug)\s*:";
+    private const string DatePattern = @"\/\/\s*(?i)date\s*:?\s*(\d{2}\s*\/\s*\d{2}\s*\/\s*\d{4})";
 
     public async Task<ScanResult> ScanProjectAsync(string projectPath)
     {
@@ -101,15 +95,15 @@ public class ScanService
 
     private static IEnumerable<TaskItem> ScanFile(string folderPath, string filePath)
     {
-        // TODO: There is a high memory consumption due to the reader.ReadToEnd() method,
-        // which loads the entire file into memory.
-        // A memory-efficient approach would be to read and process the file line by line
-        // or chunk by chunk.
-        // Date: 13 / 02 / 2024" 
+        // TODO: The scan should be enough flexible to match comments when the date is not present
+        // Date: 20 / 02 / 2024
+        
+        // Refactor: This method is too long and should be split into smaller methods
+        // Date: 20/02/2024
 
-        var keywordsRegex = new Regex(KEYWORDS_PATTERN);
+        var keywordsRegex = new Regex(KeywordsPattern);
         var contentRegex = new Regex(ContentPattern);
-        var dateRegex = new Regex(DATE_PATTERN);
+        var dateRegex = new Regex(DatePattern);
 
         var relativeFilePath = filePath.Replace(folderPath, "").TrimStart('/', '\\');
         var results = new List<TaskItem>();
@@ -125,19 +119,17 @@ public class ScanService
             {
                 // Keyword found, start a new comment
                 taskItemBuilder = new TaskItemBuilder();
-                taskItemBuilder.SetType(ParseTaskType(keywordsMatch))
-                    .SetFilePath(relativeFilePath)
-                    .SetLine(lineCounter);
+                taskItemBuilder.SetType(ParseTaskType(keywordsMatch)).SetFilePath(relativeFilePath).SetLine(lineCounter);
 
-                // Parse the content on the same line of the keyword
+                // Parse the comment content presents on the same line of the keyword
                 var contentMatch = contentRegex.Match(line);
                 if (contentMatch.Success) taskItemBuilder.AddContent(ParseTaskContent(contentMatch));
             }
             else if (taskItemBuilder != null)
             {
-                // We are inside a comment, append the line to the comment builder
+                // We are inside a comment
 
-                // Check if it's date 
+                // Check if it's date, if so this is the end of the comment
                 var dateMatch = dateRegex.Match(line);
                 if (dateMatch.Success)
                 {
@@ -182,6 +174,12 @@ public class ScanService
         var dateArray = date.Split('/').Select(s => int.Parse(s.Trim())).ToList();
         return new DateTime(dateArray[2], dateArray[1], dateArray[0]);
     }
+    
+    private static bool IsFileExtensionAllowed(string filePath)
+    {
+        var extension = Path.GetExtension(filePath);
+        return AllowedFileExtensions.Contains(extension);
+    }
 
     public ScanResult GetMockScanResult() => new ScanResult(GetMockItems(), 4, 27);
 
@@ -193,10 +191,4 @@ public class ScanService
         new TaskItem(TaskType.Todo, "Check performances", "src/mandelbrot.py", 12, new DateTime(2024, 11, 12)),
         new TaskItem(TaskType.Refactor, "Refactor method", "src/matrix.py", 47, new DateTime(2023, 10, 25)),
     };
-
-    private bool IsFileExtensionAllowed(string filePath)
-    {
-        var extension = Path.GetExtension(filePath);
-        return AllowedFileExtensions.Contains(extension);
-    }
 }
