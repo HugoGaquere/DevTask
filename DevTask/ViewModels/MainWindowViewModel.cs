@@ -5,6 +5,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
 using DevTask.Models;
+using DevTask.Services;
 using ReactiveUI;
 
 namespace DevTask.ViewModels;
