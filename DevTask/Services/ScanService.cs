@@ -4,14 +4,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Controls.Documents;
-using DynamicData;
+using DevTask.Models;
 
-namespace DevTask.Models;
+namespace DevTask.Services;
 
 public class ScanProgressEventArgs(int totalFiles, int filesScanned) : EventArgs
 {
@@ -21,7 +19,7 @@ public class ScanProgressEventArgs(int totalFiles, int filesScanned) : EventArgs
 
 public class ScanService
 {
-    public event EventHandler<ScanProgressEventArgs> ScanProgressChanged;
+    public event EventHandler<ScanProgressEventArgs>? ScanProgressChanged;
 
     private static readonly HashSet<string> AllowedFileExtensions =
     [
@@ -128,7 +126,6 @@ public class ScanService
             else if (taskItemBuilder != null)
             {
                 // We are inside a comment
-
                 // Check if it's date, if so this is the end of the comment
                 var dateMatch = dateRegex.Match(line);
                 if (dateMatch.Success)
