@@ -42,7 +42,12 @@ Download the latest installer from the [releases page](https://github.com/HugoGa
 ```bash
 sudo ./devtask_linux_x64.sh
 ```
-The application will be installed to `/opt/devtask`
+The application will be installed to `/opt/devtask`.
+
+Run with:
+```bash
+devtask
+```
 
 #### Build from source
 1. Install the .NET 8.0 SDK.

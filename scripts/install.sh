@@ -15,4 +15,4 @@ cp -r "$PWD"/* $APP_DIR
 chmod -R 755 $APP_DIR
 
 # Optionally, create a symbolic link to the application executable
-ln -s $APP_DIR/DevTask /usr/local/bin/DevTask
+ln -s $APP_DIR/DevTask /usr/local/bin/devtask
