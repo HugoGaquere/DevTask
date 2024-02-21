@@ -37,7 +37,23 @@ These comments should follow the format:
 
 ## Installation
 ### Linux
-Todo
+#### Using installer
+Download the latest installer from the [releases page](https://github.com/HugoGaquere/DevTask/releases), then run:
+```bash
+sudo ./devtask_linux_x64.sh
+```
+The application will be installed to `/opt/devtask`
+
+#### Build from source
+1. Install the .NET 8.0 SDK.
+2. Run:
+```bash
+git clone git@github.com:HugoGaquere/DevTask.git
+cd DevTask
+dotnet publish --configuration Release --runtime linux-x64 --self-contained true DevTask/DevTask.csproj -o ./publish
+./publish/DevTask
+```
+
 ### Windows
 Coming soon.
 ### MacOS
@@ -53,7 +69,7 @@ Here are some future improvements and features we're considering:
 - Make the date optional.
 - Add tests.
 - User customization options, such as custom task tags and comment styles.
-- Generate releases for Windows, Linux, and macOS.
+- Generate releases for Windows, and MacOS.
 
 Please note that this roadmap may change depending on project needs and contributions.
 
