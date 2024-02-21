@@ -9,7 +9,7 @@ It scans your project files for comments tagged with keywords, and presents them
 - Displays tasks in a user-friendly interface.
 - Sort tasks by tag, file, date, etc.
 - Provides a summary of the number of tasks, files scanned, and scan time.
-- Only support comments starting with `// keyword:` for now.
+- Only support comments starting with `// keyword` and ending with `// Date` for now.
 - [SOON] Supports different comment styles.
 
 # How it Works
