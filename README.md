@@ -40,6 +40,7 @@ These comments should follow the format:
 #### Using installer
 Download the latest installer from the [releases page](https://github.com/HugoGaquere/DevTask/releases), then run:
 ```bash
+chmod 755 devtask_linux_x64.sh
 sudo ./devtask_linux_x64.sh
 ```
 The application will be installed to `/opt/devtask`.
