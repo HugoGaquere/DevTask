@@ -8,3 +8,6 @@ cp ./scripts/install.sh ./publish
 
 # Create the installer
 makeself ./publish devtask_linux_x64.sh "DevTask installer" ./install.sh
+
+# Set the necessary permissions
+chmod 755 ./devtask_linux_x64.sh
