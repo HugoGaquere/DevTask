@@ -60,6 +60,6 @@ public class TaskItemBuilder
             throw new ArgumentNullException(nameof(_time), "Time cannot be null");
         }
 
-        return new TaskItem(_taskType, _contentBuilder.ToString(), _filePath, _line, _time);
+        return new TaskItem(_taskType, _contentBuilder.ToString().Trim(), _filePath, _line, _time);
     }
 }
