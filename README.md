@@ -12,7 +12,7 @@ It scans your project files for comments tagged with keywords, and presents them
 - Only support comments starting with `// keyword` and ending with `// Date` for now.
 - [SOON] Supports different comment styles.
 
-# How it Works
+## How it Works
 DevTask uses regular expressions to scan your project files for comments tagged with
 `TODO`, `REFACTOR` or `BUG` (not case sensitive).
 
@@ -71,11 +71,12 @@ It uses the [AvaloniaUI](https://avaloniaui.net/) framework and [ReactiveUI](htt
 
 ## Roadmap
 Here are some future improvements and features we're considering:
-- Support for different comment styles.
-- Make the date optional.
-- Add tests.
-- User customization options, such as custom task tags and comment styles.
-- Generate releases for Windows, and MacOS.
+- Support for different comment styles
+- Make the date optional
+- Add dependency injection
+- Add tests
+- User customization options, such as custom task tags and comment styles
+- Generate releases for Windows, and MacOS
 
 Please note that this roadmap may change depending on project needs and contributions.
 
